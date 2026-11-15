@@ -67,3 +67,61 @@ print(df.columns)
 """
 
 print(df["arrondissement"].value_counts()) #occurence de chaque arrondissement
+
+def normaliser_arrondissement(arrondissement):
+    arrondissement = str(arrondissement)
+    if arrondissement == "75116":
+        return arrondissement
+    elif arrondissement.startswith("750"):
+        return "751" + arrondissement[3:]
+    else:
+        return "EN DEHORS DE LA CARTE"
+
+liste = []
+for arrondissement in df["arrondissement"]:
+    liste.append(normaliser_arrondissement(arrondissement))
+
+df["arrondissement"] = liste
+print(df["arrondissement"].value_counts().sort_index())
+
+"""pre: les dates sont en format string
+   post: faire en sorte que les dates soient
+         lu comme des date par l'ordi pour pouvoir les manipuler par après.
+"""
+
+df["date_debut_etudes"] = pd.to_datetime(df["date_debut_etudes"], format="%Y-%m", errors="coerce")
+
+print(df["date_debut_etudes"][17])
+
+"""pre: avancement sous forme de texte
+   post: avancement sous forme de valeur ordinal (0-5), si abandonné: colonne à part
+"""
+rangs = {"(non démarré)": 0,
+    "ETUDES": 1,
+    "PROCEDURES": 2,
+    "TRAVAUX": 3,
+    "LIVRAISON": 4,
+    "FIN": 5,}
+
+liste2 = []
+for avancement in df["avancement"]:
+    if avancement == "ABANDONNÉ":
+        liste2.append(1)
+    else:
+        liste2.append(0)
+
+df["abandon"] = liste2
+
+df["avancement"] = df["avancement"].map(rangs)
+
+
+"""pre: le budget est compté plusieurs fois pour un même projet, car c'est répété pour chaque opérations
+   post: faire en sorte que le budget ne soit compté qu'une seule fois
+         (voir nbre opérations par projet, et divisé budget total, par ce nbre)
+"""
+df["nb_operations_projet"] = df.groupby("id_projet")["id_operation"].transform("count")
+print(df["nb_operations_projet"])
+df["budget_par_operation"] = df["budget_projet"] / df["nb_operations_projet"]
+
+### CREATION CSV FINALE ###
+df.to_csv("data/dataset_final.csv", index=False) #index false, c'est pour retirer la colonne d'index inutile
