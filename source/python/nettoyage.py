@@ -1,8 +1,11 @@
 import pandas as pd
 import sys
+from pathlib import Path
+
+RACINE = Path(__file__).resolve().parent.parent
 sys.stdout.reconfigure(encoding="utf-8") #pour que les accents sois écrit
 
-df = pd.read_csv("data/budget-participatif_operations-projets-gagnants-realisations.csv", sep=";")
+df = pd.read_csv(RACINE / "data" / "budget-participatif_operations-projets-gagnants-realisations.csv", sep=";")
 
 print(df.shape)
 print(df.columns)
@@ -80,9 +83,7 @@ def normaliser_arrondissement(arrondissement):
 liste = []
 for arrondissement in df["arrondissement"]:
     liste.append(normaliser_arrondissement(arrondissement))
-
 df["arrondissement"] = liste
-print(df["arrondissement"].value_counts().sort_index())
 
 """pre: les dates sont en format string
    post: faire en sorte que les dates soient
@@ -90,8 +91,6 @@ print(df["arrondissement"].value_counts().sort_index())
 """
 
 df["date_debut_etudes"] = pd.to_datetime(df["date_debut_etudes"], format="%Y-%m", errors="coerce")
-
-print(df["date_debut_etudes"][17])
 
 """pre: avancement sous forme de texte
    post: avancement sous forme de valeur ordinal (0-5), si abandonné: colonne à part
@@ -112,7 +111,8 @@ for avancement in df["avancement"]:
 
 df["abandon"] = liste2
 
-df["avancement"] = df["avancement"].map(rangs)
+df["rang_avancement"] = df["avancement"].map(rangs)
+df = df.drop(columns=["avancement"])
 
 
 """pre: le budget est compté plusieurs fois pour un même projet, car c'est répété pour chaque opérations
@@ -123,5 +123,6 @@ df["nb_operations_projet"] = df.groupby("id_projet")["id_operation"].transform("
 print(df["nb_operations_projet"])
 df["budget_par_operation"] = df["budget_projet"] / df["nb_operations_projet"]
 
-### CREATION CSV FINALE ###
-df.to_csv("data/dataset_final.csv", index=False) #index false, c'est pour retirer la colonne d'index inutile
+### CREATION CSV FINALE et suppression de colonne non utilisés ###
+df = df.drop(columns=["type_financement", "date_procedures", "date_travaux", "date_livraison", "date_ouverture"])
+df.to_csv(RACINE / "data" / "dataset_final.csv", index=False) #index false, c'est pour retirer la colonne d'index inutile
