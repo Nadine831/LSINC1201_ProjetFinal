@@ -12,6 +12,7 @@ const svgCarte = d3.select("#carte").append("svg").attr("width", largeurCarte).a
 // properties, cest quand on fait du survol/clic: on a + d'infos
 function creationParis(arrondissements, projets){
 
+    //rollup c'est pour faire le regroupement des opérations
     const nbOperations = d3.rollup(
         projets,
         operations => operations.length,
