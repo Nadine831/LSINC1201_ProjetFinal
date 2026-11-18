@@ -60,9 +60,7 @@ function creationParis(arrondissements, projets){
         if(d.properties.code === "75112"){
             positionX -= 50;
         }
-        else{
-            return positionX;
-        }
+        return positionX;
     })
     .attr("y", d => {const centre = chemin.centroid(d);
         return centre[1];
