@@ -5,10 +5,10 @@
     cursor: pointer;
 }
 .arrondissement.choisi {
-    stroke: black;
+    stroke: white;
     stroke-width: 3;
+    filter: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.6));
 }
-
 
 body {
     font-family: Arial, sans-serif;
