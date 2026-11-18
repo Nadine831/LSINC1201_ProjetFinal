@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    
+
     <h1>Budget participatif de Paris</h1>
     <p class="sous-titre">Explorer les projets lauréats par arrondissement, thématique et avancement</p>
 
@@ -19,17 +19,85 @@
         <div class="chiffre"><span id="chiffre-abandon"></span><small>des opérations abandonnées</small></div>
     </div>
 
-    <div id="filtre"></div>
+    <div id="page">
 
-    <div id="carte"></div>
+        <div id="carte"></div>
 
-    <div id="treemap"></div>
+        <!-- DÉBUT MAQUETTE (à effacer en entier) -->
+        <section id="maquette">
+            <style>
+                #page { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; }
+                #maquette { display: contents; }
+                .bloc { background: white; border-radius: 10px; padding: 15px 20px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); }
+                .bloc h2 { font-size: 16px; margin-top: 0; }
+                .barre-filtres { grid-column: 1 / -1; order: -1; display: flex; flex-wrap: wrap; gap: 25px; align-items: center; }
+                .barre { background: #9cc3e6; padding: 3px 8px; margin-bottom: 6px; white-space: nowrap; }
+                .mosaique { display: flex; flex-wrap: wrap; gap: 3px; }
+                .case { background: #2a6fb0; color: white; padding: 8px; font-size: 13px; height: 90px; overflow: hidden; }
+            </style>
 
-    <div id="avancement-chart"></div>
+            <div class="bloc barre-filtres">
+                <label>Du <input type="date" value="2015-01-01"></label>
+                <label>au <input type="date" value="2027-04-30"></label>
+                <label>Thématique
+                    <select>
+                        <option>Toutes</option>
+                        <option>Cadre de vie</option>
+                        <option>Éducation et jeunesse</option>
+                        <option>Environnement</option>
+                        <option>Culture et patrimoine</option>
+                        <option>Solidarités</option>
+                        <option>Sport</option>
+                        <option>Mobilités</option>
+                        <option>Prévention et sécurité</option>
+                        <option>Propreté</option>
+                        <option>Santé</option>
+                        <option>Attractivité et emploi</option>
+                    </select>
+                </label>
+                <small>(maquette : sans effet)</small>
+            </div>
 
-    <div id="budget-chart"></div>
+            <div class="bloc">
+                <h2>Projets par thématique (maquette)</h2>
+                <div class="mosaique">
+                    <div class="case" style="flex: 356 1 120px">Cadre de vie<br>356</div>
+                    <div class="case" style="flex: 242 1 120px">Éducation<br>242</div>
+                    <div class="case" style="flex: 214 1 120px">Environnement<br>214</div>
+                    <div class="case" style="flex: 164 1 120px">Culture<br>164</div>
+                    <div class="case" style="flex: 150 1 120px">Solidarités<br>150</div>
+                    <div class="case" style="flex: 142 1 120px">Sport<br>142</div>
+                    <div class="case" style="flex: 57 1 120px">Mobilités<br>57</div>
+                    <div class="case" style="flex: 55 1 120px">Sécurité<br>55</div>
+                    <div class="case" style="flex: 36 1 120px">Propreté<br>36</div>
+                    <div class="case" style="flex: 16 1 120px">Santé<br>16</div>
+                    <div class="case" style="flex: 14 1 120px">Emploi<br>14</div>
+                </div>
+            </div>
 
-    <div id="tooltip"></div>
+            <div class="bloc">
+                <h2>Opérations par avancement (maquette)</h2>
+                <div class="barre" style="width: 3.8%">Non démarré · 152</div>
+                <div class="barre" style="width: 15.4%">Études · 610</div>
+                <div class="barre" style="width: 3.4%">Procédures · 133</div>
+                <div class="barre" style="width: 6.4%">Travaux · 254</div>
+                <div class="barre" style="width: 3.6%">Livraison · 143</div>
+                <div class="barre" style="width: 100%">Terminé · 3 952</div>
+                <div class="barre" style="width: 6.7%">Abandonné · 266</div>
+            </div>
+
+            <div class="bloc">
+                <h2>Budget par direction, en M€ (maquette)</h2>
+                <div class="barre" style="width: 100%">Espaces verts · 156</div>
+                <div class="barre" style="width: 93.6%">Affaires scolaires · 146</div>
+                <div class="barre" style="width: 90.4%">Voirie · 141</div>
+                <div class="barre" style="width: 85.3%">Jeunesse et sports · 133</div>
+                <div class="barre" style="width: 49.4%">Affaires culturelles · 77</div>
+            </div>
+        </section>
+        <!-- FIN MAQUETTE -->
+
+    </div>
 
     <script src="js/d3.min.js"></script>
     <script src="js/chiffres.js"></script>
