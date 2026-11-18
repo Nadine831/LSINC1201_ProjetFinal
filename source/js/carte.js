@@ -5,12 +5,25 @@ const hauteurCarte = 400;
 
 let arrondissementChoisi = null; //let: car variable, sert à retenir ce qu'on a cliqué
 
-const svgCarte = d3.select("#carte").append("svg").attr("width", largeurCarte).attr("height", hauteurCarte);
+const svgCarte = d3.select("#carte").append("svg").attr("width", largeurCarte).attr("height", hauteurCarte + 70);
 
 // dans csv, on a pour chaque arrondissement, des données geo..., 
 // => faire contours des arrondissement grâce à ses données.
 // properties, cest quand on fait du survol/clic: on a + d'infos
-function creationParis(arrondissements){
+function creationParis(arrondissements, projets){
+
+    const nbOperations = d3.rollup(
+        projets,
+        operations => operations.length,
+        operation => operation.arrondissement
+    );
+
+    console.log(nbOperations);
+
+    const couleur = d3.scaleSequential()
+        .domain([0, d3.max(Array.from(nbOperations.values()))])
+        .interpolator(d3.interpolateBlues);
+
     const contours = [];
     for(const arrondissement of arrondissements){
         const contour = {
@@ -34,10 +47,58 @@ function creationParis(arrondissements){
 
     //Mise en place du dessin de paris, path ça correspond aux éléments de type feature contenu dans contours qui vont être
     //traduit en svg grâce à chemin(geoPath), (en gros cest la "geometry" de nos arrondissements, version svg)
-    const formes = svgCarte.selectAll("path").data(contours).join("path").attr("class", "arrondissement").attr("d", chemin).attr("fill", "#cfe2f3").attr("stroke", "white");
+    const formes = svgCarte.selectAll("path").data(contours).join("path").attr("class", "arrondissement").attr("d", chemin)
+        .attr("fill", d => couleur(
+            nbOperations.get(d.properties.code) || 0
+        ))
+        .attr("stroke", "white");
 
     //nom arrondi au survol
-    formes.append("title").text(d => d.properties.nom);
+    formes.append("title")
+        .text(d => d.properties.nom + " : "
+            + (nbOperations.get(d.properties.code) || 0)
+            + " opérations");
+
+    // Dégradé utilisé dans la légende
+    const degrade = svgCarte.append("defs")
+        .append("linearGradient")
+        .attr("id", "degrade-carte");
+
+    for (let i = 0; i <= 10; i++) {
+        degrade.append("stop")
+            .attr("offset", (i * 10) + "%")
+            .attr("stop-color", d3.interpolateBlues(i / 10));
+    }
+
+    // Groupe placé sous la carte
+    const legende = svgCarte.append("g")
+        .attr("transform", "translate(30," + (hauteurCarte + 15) + ")");
+
+    legende.append("text")
+        .text("Nombre d’opérations")
+        .attr("font-size", 12);
+
+    legende.append("rect")
+        .attr("y", 8)
+        .attr("width", 220)
+        .attr("height", 12)
+        .attr("fill", "url(#degrade-carte)");
+
+    const echelleLegende = d3.scaleLinear()
+        .domain(couleur.domain())
+        .range([0, 220]);
+
+    legende.append("g")
+        .attr("transform", "translate(0,20)")
+        .call(
+            d3.axisBottom(echelleLegende)
+                .ticks(5)
+                .tickFormat(d3.format("d"))
+        );
+
+    formes.on("mouseenter", function () {
+        d3.select(this).raise();
+    });
 
     //gestion du cliquage d'un arrondissement
     formes.on("click", (event, d) => {
@@ -55,6 +116,8 @@ function creationParis(arrondissements){
             arrondissementChoisi = d.properties.code; //code arrondissement
          }
          console.log("choisi :", arrondissementChoisi);
+
+        
 });
        
 }
