@@ -7,3 +7,47 @@
     stroke: black;
     stroke-width: 3;
 }
+
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 20px 30px;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+.sous-titre {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+#chiffres {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.chiffre, #carte {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    padding: 15px 20px;
+}
+
+#carte {
+    width: fit-content;
+}
+
+.chiffre span {
+    display: block;
+    font-size: 28px;
+    font-weight: bold;
+    color: #2a6fb0;
+}
+
+.chiffre small {
+    color: #666;
+}
