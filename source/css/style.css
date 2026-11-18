@@ -2,3 +2,8 @@
     fill: #4f92d0;
     cursor: pointer;
 }
+
+.arrondissement.choisi {
+    stroke: black;
+    stroke-width: 3;
+}
