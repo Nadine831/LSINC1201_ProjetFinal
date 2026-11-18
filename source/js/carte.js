@@ -12,18 +12,19 @@ const svgCarte = d3.select("#carte").append("svg").attr("width", largeurCarte).a
 // properties, cest quand on fait du survol/clic: on a + d'infos
 function creationParis(arrondissements, projets){
 
-    //rollup c'est pour faire le regroupement des opérations
+    // rollup c'est sous la forme:  rollup(data, reducer, key1, key2…)
+    // en gros ici on regroupe les opérations par arrondissement, et ensuite
+    // en compte y a combien d'opération présent par arrondissement
     const nbOperations = d3.rollup(
         projets,
         operations => operations.length,
         operation => operation.arrondissement
     );
-
     console.log(nbOperations);
 
-    const couleur = d3.scaleSequential()
-        .domain([0, d3.max(Array.from(nbOperations.values()))])
-        .interpolator(d3.interpolateBlues);
+    //création de séquence couleur dégradé qui s'étend en fonction du nbre d'opérations, ici en bleu
+    const couleur = d3.scaleSequential().domain([0, d3.max(Array.from(nbOperations.values()))]).interpolator(d3.interpolateBlues);
+
 
     const contours = [];
     for(const arrondissement of arrondissements){
@@ -49,44 +50,36 @@ function creationParis(arrondissements, projets){
     //Mise en place du dessin de paris, path ça correspond aux éléments de type feature contenu dans contours qui vont être
     //traduit en svg grâce à chemin(geoPath), (en gros cest la "geometry" de nos arrondissements, version svg)
     const formes = svgCarte.selectAll("path").data(contours).join("path").attr("class", "arrondissement").attr("d", chemin)
-        .attr("fill", d => couleur(
-            nbOperations.get(d.properties.code) || 0
-        ))
-        .attr("stroke", "white");
+        .attr("fill", d => couleur(nbOperations.get(d.properties.code) || 0)).attr("stroke", "white");
 
-    svgCarte.selectAll(".numero-arrondissement")
-        .data(contours)
-        .join("text")
-        .attr("class", "numero-arrondissement")
-       .attr("x", d => {
-            const x = chemin.centroid(d)[0];
-            return d.properties.code === "75112" ? x - 50 : x;
-        })
-        .attr("y", d => chemin.centroid(d)[1])
-        .attr("text-anchor", "middle")
-        .attr("dominant-baseline", "middle")
-        .attr("fill", "black")
-        .attr("paint-order", "stroke")
-        .attr("stroke", "white")
-        .attr("stroke-width", 1.5)
-        .attr("stroke-linejoin", "round")
-        .attr("font-size", 12)
-        .attr("font-weight", "bold")
-        .attr("pointer-events", "none")
-        .text(d => {
-            const numero = Number(d.properties.code.slice(-2));
-            return numero === 1 ? "1er" : numero + "e";
-        });
+    //affichage du numéro de l'arrondissement sur l'arrondissement, mis un peu près au
+    //centre, aussi tenir compte de la forme bizarre du 12e arrondissement
+    svgCarte.selectAll(".numero-arrondissement").data(contours).join("text").attr("class", "numero-arrondissement")
+    .attr("x", d => {const centre = chemin.centroid(d);
+        let positionX = centre[0];
+        if(d.properties.code === "75112"){
+            positionX -= 50;
+        }
+        else{
+            return positionX;
+        }
+    })
+    .attr("y", d => {const centre = chemin.centroid(d);
+        return centre[1];
+    })
+    .text(d => {const numero = Number(d.properties.code.slice(-2));return numero === 1 ? "1er" : numero + "e";});
+
+
     //nom arrondi au survol
     formes.append("title")
         .text(d => d.properties.nom.replace(/ardt\.?/gi, "arr.") + " : "
             + (nbOperations.get(d.properties.code) || 0)
             + " opérations");
-    // Dégradé utilisé dans la légende
-    const degrade = svgCarte.append("defs")
-        .append("linearGradient")
-        .attr("id", "degrade-carte");
 
+    // Dégradé utilisé dans la légende
+    const degrade = svgCarte.append("defs").append("linearGradient").attr("id", "degrade-carte");
+
+    //création des couleurs pour le dégradé
     for (let i = 0; i <= 10; i++) {
         degrade.append("stop")
             .attr("offset", (i * 10) + "%")
@@ -94,31 +87,23 @@ function creationParis(arrondissements, projets){
     }
 
     // Groupe placé sous la carte
-    const legende = svgCarte.append("g")
-        .attr("transform", "translate(30," + (hauteurCarte + 15) + ")");
+    const legende = svgCarte.append("g").attr("transform", "translate(30," + (hauteurCarte + 15) + ")");
 
-    legende.append("text")
-        .text("Nombre d’opérations")
-        .attr("font-size", 12);
+    legende.append("text").text("Nombre d’opérations").attr("font-size", 12);
 
-    legende.append("rect")
-        .attr("y", 8)
-        .attr("width", 220)
-        .attr("height", 12)
-        .attr("fill", "url(#degrade-carte)");
+    legende.append("rect").attr("y", 8).attr("width", 220).attr("height", 12).attr("fill", "url(#degrade-carte)");
 
-    const echelleLegende = d3.scaleLinear()
-        .domain(couleur.domain())
-        .range([0, 220]);
+    const echelleLegende = d3.scaleLinear().domain(couleur.domain()).range([0, 220]);
 
-    legende.append("g")
-        .attr("transform", "translate(0,20)")
+    legende.append("g").attr("transform", "translate(0,20)")
         .call(
             d3.axisBottom(echelleLegende)
                 .ticks(5)
                 .tickFormat(d3.format("d"))
         );
 
+
+    //mettre l'arrondissement qu'on survol au premier plan    
     formes.on("mousemove", function () {
         const zone = d3.select(this);
 
@@ -153,6 +138,8 @@ function creationParis(arrondissements, projets){
         
     });
        
+        //ici ça permet que si on clique en dehors de notre vue, on peut tout de même
+        // déselectionner le choix d'un arrondissement
         d3.select("body").on("click.deselectionCarte", () => {
         formes.classed("choisi", false);
         arrondissementChoisi = null;
