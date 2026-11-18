@@ -53,12 +53,34 @@ function creationParis(arrondissements, projets){
         ))
         .attr("stroke", "white");
 
+    svgCarte.selectAll(".numero-arrondissement")
+        .data(contours)
+        .join("text")
+        .attr("class", "numero-arrondissement")
+       .attr("x", d => {
+            const x = chemin.centroid(d)[0];
+            return d.properties.code === "75112" ? x - 50 : x;
+        })
+        .attr("y", d => chemin.centroid(d)[1])
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("fill", "black")
+        .attr("paint-order", "stroke")
+        .attr("stroke", "white")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-linejoin", "round")
+        .attr("font-size", 12)
+        .attr("font-weight", "bold")
+        .attr("pointer-events", "none")
+        .text(d => {
+            const numero = Number(d.properties.code.slice(-2));
+            return numero === 1 ? "1er" : numero + "e";
+        });
     //nom arrondi au survol
     formes.append("title")
-        .text(d => d.properties.nom + " : "
+        .text(d => d.properties.nom.replace(/ardt\.?/gi, "arr.") + " : "
             + (nbOperations.get(d.properties.code) || 0)
             + " opérations");
-
     // Dégradé utilisé dans la légende
     const degrade = svgCarte.append("defs")
         .append("linearGradient")
@@ -96,12 +118,20 @@ function creationParis(arrondissements, projets){
                 .tickFormat(d3.format("d"))
         );
 
-    formes.on("mouseenter", function () {
-        d3.select(this).raise();
-    });
+    formes.on("mousemove", function () {
+        const zone = d3.select(this);
 
+        if (!zone.classed("au-premier-plan")) {
+            formes.classed("au-premier-plan", false);
+            zone.classed("au-premier-plan", true).raise();
+            svgCarte.selectAll(".numero-arrondissement").raise();
+        }
+    });
+    
     //gestion du cliquage d'un arrondissement
     formes.on("click", (event, d) => {
+        event.stopPropagation();
+
         const Cliquer = d3.select(event.currentTarget);
         const resteCliquer = Cliquer.classed("choisi"); //attribution class css: "choisi"
         
@@ -115,9 +145,15 @@ function creationParis(arrondissements, projets){
             Cliquer.classed("choisi", true).raise();
             arrondissementChoisi = d.properties.code; //code arrondissement
          }
+         svgCarte.selectAll(".numero-arrondissement").raise();
+
          console.log("choisi :", arrondissementChoisi);
 
         
-});
+    });
        
+        d3.select("body").on("click.deselectionCarte", () => {
+        formes.classed("choisi", false);
+        arrondissementChoisi = null;
+    });
 }
